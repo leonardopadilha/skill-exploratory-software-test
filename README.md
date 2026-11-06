@@ -81,7 +81,8 @@ Prompt usado:
 > utilize a skill /exploratory-software-test para navegar no site https://bugbank.netlify.app/, ao final gere um
 > relatório html apontando os bugs encontrados e qual heurística de teste você utilizou para encontrar aquele bug.
 
-Resultado: [`examples/relatorio-bugbank.html`](examples/relatorio-bugbank.html) (baixe e abra no navegador).
+Resultado: **[ver o relatório online](https://leonardopadilha.github.io/skill-exploratory-software-test/examples/relatorio-bugbank.html)**
+(arquivo-fonte: [`examples/relatorio-bugbank.html`](examples/relatorio-bugbank.html)).
 O relatório traz **15 problemas** (1 crítica, 2 altas, 6 médias, 6 baixas), uma matriz bug × heurística, passos,
 resultado esperado com a fonte do oráculo, evidências, e uma seção de cobertura e lacunas.
 
