@@ -97,10 +97,9 @@ ainda não foram reproduzidos de forma independente. O BugBank é uma aplicaçã
 
 ## Sobre a autoria
 
-Esta skill foi **gerada com o Claude a partir de um prompt meu** (Leonardo Padilha) e curada por mim. O conteúdo
-sintetiza ideias publicadas por James Bach, Michael Bolton, Cem Kaner, Elisabeth Hendrickson, James Whittaker,
-Karen N. Johnson, Mike Kelly, Júlio de Lima (ALTER FACE), Michael Feathers e o ISTQB, entre outros, sempre com
-crédito e indicação do grau de verificação. Os exemplos são fictícios.
+O conteúdo desta skill sintetiza ideias e contribuições publicadas por autores e pesquisadores da área de testes de
+software, incluindo heurísticas de teste, sempre com os devidos créditos e a indicação do respectivo grau de
+verificação. Os exemplos são fictícios.
 
 ## Roadmap (próximas versões)
 
