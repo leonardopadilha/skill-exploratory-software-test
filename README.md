@@ -53,6 +53,8 @@ references/
   11-cenario-integrado.md     # exemplo fictício completo (SRD)
   12-casos-por-funcionalidade.md
   referencias.md
+examples/
+  relatorio-bugbank.html      # relatório da primeira execução da skill
 ```
 
 ## Como usar
@@ -71,6 +73,27 @@ Depois, peça algo como:
 - "Tenho uma tela de aprovação para testar amanhã e não há documentação. Por onde começo?"
 - "Revise estes casos de teste e diga o que eles não cobrem."
 - "Esse comportamento é bug ou feature? Ajude-me a argumentar."
+
+## Exemplo de execução (primeira execução da skill)
+
+Prompt usado:
+
+> utilize a skill /exploratory-software-test para navegar no site https://bugbank.netlify.app/, ao final gere um
+> relatório html apontando os bugs encontrados e qual heurística de teste você utilizou para encontrar aquele bug.
+
+Resultado: [`examples/relatorio-bugbank.html`](examples/relatorio-bugbank.html) (baixe e abra no navegador).
+O relatório traz **15 problemas** (1 crítica, 2 altas, 6 médias, 6 baixas), uma matriz bug × heurística, passos,
+resultado esperado com a fonte do oráculo, evidências, e uma seção de cobertura e lacunas.
+
+| Pontos fortes observados | Limitações conhecidas (viram melhorias da v1.1) |
+|---|---|
+| Cada bug cita heurística e oráculo | Severidade de BUG-01 provavelmente superestimada: o app guarda tudo em `localStorage`, então o impacto fica restrito ao navegador local |
+| Declara o que não foi testado e uma observação não reproduzida | BUG-14 (acessibilidade) foi registrado como confirmado sem teste de navegação por teclado |
+| Separa requisito violado de sugestão de melhoria | Algumas técnicas citadas não são heurísticas publicadas (ex.: comparação literal requisito × tela) |
+| | Concorrência, valores extremos e HTML em campos ficaram sem cobertura |
+
+O relatório foi mantido como o Claude o gerou, sem edições, para servir de registro fiel da execução. Os bugs
+ainda não foram reproduzidos de forma independente. O BugBank é uma aplicação pública de treinamento.
 
 ## Sobre a autoria
 

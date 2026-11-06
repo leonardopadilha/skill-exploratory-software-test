@@ -1,0 +1,323 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Relatório Exploratório BugBank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: relatório de QA — cabeçalho-resumo, matriz bug × heurística, fichas de bug com faixa de severidade, cobertura e lacunas */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#1b2130; --muted:#5b6476; --line:#dde1e8;
+  --accent:#2f5bd3; --accent-soft:#e7edfb;
+  --crit:#b3261e; --crit-soft:#fbe9e7; --high:#c25a00; --high-soft:#fdefe2;
+  --med:#8a6d00; --med-soft:#fbf3d6; --low:#3f6f55; --low-soft:#e5f1ea;
+  --ok:#2e7d4f;
+  --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151c; --surface:#1a1f29; --ink:#e7eaf1; --muted:#9aa3b5; --line:#2c3341;
+  --accent:#7d9cf0; --accent-soft:#1f2a44;
+  --crit:#f2867c; --crit-soft:#3a1d1b; --high:#f3a35b; --high-soft:#3a2716;
+  --med:#e1c55a; --med-soft:#342d14; --low:#86c7a0; --low-soft:#1b3125; --ok:#7fd1a0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151c; --surface:#1a1f29; --ink:#e7eaf1; --muted:#9aa3b5; --line:#2c3341;
+  --accent:#7d9cf0; --accent-soft:#1f2a44;
+  --crit:#f2867c; --crit-soft:#3a1d1b; --high:#f3a35b; --high-soft:#3a2716;
+  --med:#e1c55a; --med-soft:#342d14; --low:#86c7a0; --low-soft:#1b3125; --ok:#7fd1a0;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px;display:grid;gap:40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4vw,2.6rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.35rem;font-weight:700}
+h3{font-size:1.08rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:.86em}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header{display:grid;gap:14px}
+.lede{max-width:68ch;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.9rem;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tally div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:2px}
+.tally strong{font-family:var(--f-display);font-size:2rem;font-variant-numeric:tabular-nums;line-height:1}
+.tally span{font-size:.85rem;color:var(--muted)}
+.t-crit strong{color:var(--crit)} .t-high strong{color:var(--high)} .t-med strong{color:var(--med)} .t-low strong{color:var(--low)}
+
+section{display:grid;gap:16px}
+.section-head{display:grid;gap:6px}
+.section-head p{color:var(--muted);max-width:70ch}
+
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.method div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:6px;min-width:0}
+.method p{font-size:.94rem;color:var(--muted)}
+
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:.92rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td a{text-decoration:none;font-family:var(--f-mono);font-weight:600}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:inherit;font-size:.88rem;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+
+.bugs{display:grid;gap:14px}
+.bug{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--sev);border-radius:8px;padding:18px 20px;display:grid;gap:12px;scroll-margin-top:16px}
+.bug-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px}
+.bug-id{font-family:var(--f-mono);font-weight:600;color:var(--muted);font-size:.85rem}
+.pill{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:999px;background:var(--sev-soft);color:var(--sev);font-weight:600}
+.area{font-size:.85rem;color:var(--muted)}
+.bug h3{flex:1 1 100%}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 20px}
+.field{display:grid;gap:3px;min-width:0}
+.field .eyebrow{font-size:.68rem}
+.field p,.field ol{font-size:.95rem}
+.field ol{margin:0;padding-left:1.2em}
+.heur{background:var(--accent-soft);border-radius:6px;padding:10px 12px;display:grid;gap:4px}
+.heur p{font-size:.94rem}
+.heur b{font-weight:700}
+.evid{font-family:var(--f-mono);font-size:.8rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--muted)}
+.sev-crit{--sev:var(--crit);--sev-soft:var(--crit-soft)}
+.sev-high{--sev:var(--high);--sev-soft:var(--high-soft)}
+.sev-med{--sev:var(--med);--sev-soft:var(--med-soft)}
+.sev-low{--sev:var(--low);--sev-soft:var(--low-soft)}
+
+.lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.lists > div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 20px;display:grid;gap:10px;align-content:start;min-width:0}
+.lists ul{margin:0;padding-left:1.1em;display:grid;gap:6px;font-size:.95rem}
+.ok li::marker{color:var(--ok)}
+.note{font-size:.9rem;color:var(--muted);max-width:75ch}
+footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion: no-preference){.bug{transition:opacity .15s}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Teste exploratório · Relatório de sessão</p>
+  <h1>BugBank: bugs encontrados e heurísticas usadas</h1>
+  <p class="lede">Exploração manual do <a href="https://bugbank.netlify.app/" target="_blank" rel="noopener">bugbank.netlify.app</a> com foco em Login, Cadastro, Transferência e Extrato. Cada bug traz os passos, o resultado esperado (com a fonte do oráculo), o que foi observado e a heurística que levou ao teste. Todos os itens abaixo foram executados e observados no navegador; nada aqui é hipotético, salvo onde está marcado.</p>
+  <div class="meta">
+    <span>Data: <b>06/11/2026</b></span>
+    <span>Ambiente: <b>navegador Chromium, 1280×800 e 375×812</b></span>
+    <span>Duração: <b>~1 sessão de 60 min</b></span>
+    <span>Contas de teste: <b class="mono">alice@teste.com (533-4)</b>, <b class="mono">bob@teste.com (855-2)</b></span>
+  </div>
+</header>
+
+<section aria-labelledby="resumo">
+  <div class="section-head"><h2 id="resumo">Resumo</h2>
+  <p>15 problemas confirmados. O mais grave permite que qualquer pessoa assuma uma conta existente apenas recadastrando o mesmo e-mail. Os dois seguintes afetam dinheiro: transferências duplicadas por clique repetido e transferências sem a descrição obrigatória.</p></div>
+  <div class="tally">
+    <div class="t-crit"><strong>1</strong><span>Crítica</span></div>
+    <div class="t-high"><strong>2</strong><span>Alta</span></div>
+    <div class="t-med"><strong>6</strong><span>Média</span></div>
+    <div class="t-low"><strong>6</strong><span>Baixa</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="metodo">
+  <div class="section-head"><h2 id="metodo">Como o teste foi conduzido</h2></div>
+  <div class="method">
+    <div><h3>Modelagem (SFDIPOT)</h3><p>Function e Data primeiro (regras de cadastro, saldo, valor), depois Time/estado (sequência cadastro → login → transferência → extrato) e Interfaces (modais, menu, responsividade). Dinheiro e identidade da conta definiram a prioridade.</p></div>
+    <div><h3>Oráculos (FEW HICCUPPS)</h3><p>Principal: <b>Claims</b>, a página <span class="mono">/requirements</span> do próprio site. Complementares: Purpose, Users' expectations, Product (consistência interna), Comparable products (apps bancários brasileiros), Image e Statutes/padrões (segurança, WCAG).</p></div>
+    <div><h3>Observação além da tela</h3><p>O estado foi conferido no <span class="mono">localStorage</span> após cada ação, seguindo o dado (saldo e histórico das duas contas) para confirmar débito, crédito e sobrescrita, e não apenas a mensagem exibida.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="matriz">
+  <div class="section-head"><h2 id="matriz">Matriz bug × heurística</h2>
+  <p>Visão rápida de qual heurística ou técnica revelou cada problema. Clique no ID para ir à ficha.</p></div>
+  <div class="tablebox"><table id="matrixTable">
+    <thead><tr><th>ID</th><th>Severidade</th><th>Problema</th><th>Heurística / técnica</th><th>Oráculo</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="fichas">
+  <div class="section-head"><h2 id="fichas">Fichas dos bugs</h2></div>
+  <div class="filters" role="group" aria-label="Filtrar por severidade">
+    <button type="button" id="f-all" data-f="all" aria-pressed="true">Todos (15)</button>
+    <button type="button" id="f-crit" data-f="crit" aria-pressed="false">Crítica</button>
+    <button type="button" id="f-high" data-f="high" aria-pressed="false">Alta</button>
+    <button type="button" id="f-med" data-f="med" aria-pressed="false">Média</button>
+    <button type="button" id="f-low" data-f="low" aria-pressed="false">Baixa</button>
+  </div>
+  <div class="bugs" id="bugs"></div>
+</section>
+
+<section aria-labelledby="cobertura">
+  <div class="section-head"><h2 id="cobertura">Cobertura e lacunas</h2>
+  <p>Não ter visto problema não significa que ele não exista. Abaixo, o que foi testado e se comportou como o requisito descreve, e o que ficou de fora.</p></div>
+  <div class="lists">
+    <div class="ok"><h3>Funcionou conforme o requisito</h3><ul>
+      <li>Login com usuário inexistente é recusado com mensagem clara.</li>
+      <li>Cadastro recusa senha e confirmação diferentes e e-mail sem formato válido.</li>
+      <li>Toggle "Criar conta com saldo" gera R$ 1.000,00; sem ele, R$ 0,00.</li>
+      <li>Valor 0 e negativo (−50) são recusados.</li>
+      <li>Saldo + 1 (R$ 991 com saldo de R$ 990) é recusado; valor igual ao saldo (R$ 950 com saldo de R$ 950) é aceito e zera a conta.</li>
+      <li>Conta inexistente e dígito verificador errado (855-9) são recusados.</li>
+      <li>Transferência para a própria conta é bloqueada.</li>
+      <li>Débito e crédito batem nas duas contas; extrato mostra saídas em vermelho com sinal "−", entradas em verde e "−" quando não há descrição.</li>
+      <li>Após "Sair", acessar <span class="mono">/home</span> direto volta ao login.</li>
+      <li>Pagamentos e Saque exibem "Funcionalidade em desenvolvimento", como o requisito prevê.</li>
+      <li>Home e login sem rolagem horizontal em 375 px.</li>
+    </ul></div>
+    <div><h3>Não testado nesta sessão</h3><ul>
+      <li>Concorrência: duas abas da mesma conta transferindo ao mesmo tempo.</li>
+      <li>Strings longas e caracteres especiais (incluindo HTML/script) em nome e descrição.</li>
+      <li>Valores muito grandes, muitas casas decimais e notação científica (ex.: 1e3).</li>
+      <li>Navegação só por teclado e leitor de tela de ponta a ponta.</li>
+      <li>Outros navegadores (Firefox, Safari) e mobile real.</li>
+      <li>Edição manual do <span class="mono">localStorage</span> (o app declara que guarda tudo localmente, então foi tratado como fora do escopo).</li>
+      <li>Pagamento e Saque, por não estarem implementados.</li>
+    </ul></div>
+  </div>
+  <p class="note"><b>Observação não reproduzida:</b> em uma sequência de tentativas inválidas, a tela foi uma vez para o extrato sem nenhuma transferência ser feita. Repetindo o cenário isoladamente, isso não aconteceu de novo. Fica registrado como comportamento intermitente a investigar, não como bug confirmado.</p>
+</section>
+
+<footer>Heurísticas citadas: SFDIPOT/HTSM (James Bach); FEW HICCUPPS (Michael Bolton); Zero-Um-Muitos, Goldilocks, Ataques de tipo de dado e Interrupções (Test Heuristics Cheat Sheet, Hendrickson, Lyndsay &amp; Emery); ALTER FACE (Júlio de Lima); técnicas formais de particionamento de equivalência, análise de valor-limite e transição de estados; CRUD; error guessing.</footer>
+</div>
+
+<script>
+const SEV = {crit:"Crítica", high:"Alta", med:"Média", low:"Baixa"};
+const bugs = [
+{id:"BUG-01", sev:"crit", area:"Cadastro", title:"Cadastrar com um e-mail já existente sobrescreve a conta anterior",
+ steps:["Cadastrar semnome@teste.com com senha 123456 (conta 611-1 criada).","Abrir Registrar de novo e cadastrar o mesmo e-mail com outro nome e senha abcdef."],
+ expected:"Recusar o cadastro informando que o e-mail já está em uso. Fonte: Purpose e Users' expectations (um banco não troca o dono de uma conta).",
+ actual:"Mensagem 'A conta 807-7 foi criada com sucesso'. A conta antiga some: senha, número, saldo e histórico são substituídos. Quem conhece o e-mail de alguém assume a conta.",
+ heur:"CRUD, aplicando Create sobre um registro que já existe; Zero-Um-Muitos (cadastrar o mesmo dado uma segunda vez).",
+ oracle:"Purpose, Users' expectations, Statutes (segurança)",
+ evid:"antes: {name:'   ', password:'123456', accountNumber:'611-1'}\ndepois: {name:'Usuario Duplicado', password:'abcdef', accountNumber:'807-7'}"},
+{id:"BUG-02", sev:"high", area:"Transferência", title:"Clicar de novo em \"Transferir agora\" repete a transferência",
+ steps:["Logado como Alice, transferir R$ 20 para 855-2 com descrição.","Fechar o modal de sucesso e clicar outra vez em Transferir agora, sem alterar nada."],
+ expected:"Após o sucesso, sair da tela (o requisito pede ir ao extrato) ou limpar o formulário, impedindo a repetição acidental. Fonte: Claims e Purpose.",
+ actual:"O formulário continua preenchido e o segundo clique debita mais R$ 20. Não há confirmação nem aviso de operação repetida.",
+ heur:"Error guessing (ataque de submissão repetida) combinado com transição de estados: o estado pós-sucesso deixa o formulário pronto para reenviar.",
+ oracle:"Claims, Purpose",
+ evid:"Alice 970 → 950 · Bob 1030 → 1050 · histórico da Alice: 2 lançamentos de −R$ 20 com a mesma descrição"},
+{id:"BUG-03", sev:"high", area:"Transferência", title:"Transferência sem descrição é concluída",
+ steps:["Preencher conta 855, dígito 2, valor 10.","Deixar Descrição vazia e clicar Transferir agora."],
+ expected:"Recusar: 'Campo descrição é um campo de preenchimento obrigatório'. Fonte: Claims (/requirements › Transferência).",
+ actual:"'Transferencia realizada com sucesso'. R$ 10 debitados da Alice e creditados ao Bob com descrição vazia.",
+ heur:"Particionamento de equivalência (classe inválida isolada: só um campo obrigatório vazio) + Zero do Zero-Um-Muitos.",
+ oracle:"Claims",
+ evid:"transaction:alice → {type:'withdrawal', transferValue:-10, description:''}"},
+{id:"BUG-04", sev:"med", area:"Transferência", title:"Após transferência bem-sucedida, o app não vai para o extrato",
+ steps:["Fazer uma transferência válida.","Aguardar 8 s com o modal aberto; depois fechar o modal e aguardar mais 4 s."],
+ expected:"'Ao realizar uma transferência com sucesso deve ser redirecionado para o extrato'. Fonte: Claims.",
+ actual:"A URL permanece em /transfer durante todo o tempo, antes e depois de fechar o modal.",
+ heur:"Transição de estados: verificar o estado de destino depois do evento 'transferência concluída'.",
+ oracle:"Claims",
+ evid:"location.pathname a cada 0,5 s: /transfer (×24)"},
+{id:"BUG-05", sev:"med", area:"Cadastro", title:"Formulário de cadastro guarda os dados do cadastro anterior, inclusive senha e toggle de saldo",
+ steps:["Cadastrar Alice com o toggle 'Criar conta com saldo' ligado.","Clicar Registrar de novo e cadastrar Bob sem tocar no toggle."],
+ expected:"Formulário limpo a cada novo cadastro; o saldo inicial só existe se a pessoa ligar o toggle. Fonte: Users' expectations, Purpose, Statutes (privacidade).",
+ actual:"O formulário reabre com e-mail, nome, senha e confirmação anteriores, e o toggle continua ligado. Bob foi criado com R$ 1.000,00 sem o toggle ser acionado.",
+ heur:"Transição de estados e Começo-Meio-Fim: repetir o fluxo logo após concluí-lo e observar o que sobra do estado anterior.",
+ oracle:"Users' expectations, Statutes (privacidade)",
+ evid:"bob@teste.com → {balance:1000} sem clique no toggle\ncampos ao reabrir: email=semnome@teste.com, password=123456"},
+{id:"BUG-06", sev:"med", area:"Transferência", title:"Número da conta e dígito aceitam letras",
+ steps:["Digitar 'abc' em Número da conta e 'x' em Dígito.","Preencher valor e descrição e transferir."],
+ expected:"'Número e digito da conta aceitam apenas números': o campo não deveria aceitar letras. Fonte: Claims.",
+ actual:"Os campos aceitam qualquer caractere; o erro só aparece no envio, como 'Conta inválida ou inexistente', sem dizer que o problema é o formato.",
+ heur:"Ataques de tipo de dado (letras em campo numérico).",
+ oracle:"Claims",
+ evid:"inputs: accountNumber='abc', digit='x' (aceitos na digitação)"},
+{id:"BUG-07", sev:"med", area:"Transferência", title:"Valor com vírgula decimal (10,50) é recusado",
+ steps:["Preencher conta válida, descrição e valor '10,50'.","Clicar Transferir agora."],
+ expected:"Aceitar R$ 10,50, que é o formato que o público brasileiro digita, ou aplicar máscara de moeda. Fonte: Users' expectations, Comparable products.",
+ actual:"Transferência recusada com mensagem técnica (ver BUG-08). Só funciona com valor inteiro ou ponto decimal.",
+ heur:"Ataques de tipo de dado com formato regional (separador decimal pt-BR).",
+ oracle:"Users' expectations, Comparable products",
+ evid:"transferValue must be a `number` type, but the final value was: `NaN` (cast from the value `\"10,50\"`)"},
+{id:"BUG-08", sev:"med", area:"Transferência", title:"Validação mostra mensagem técnica em inglês para o usuário",
+ steps:["Na tela de transferência, clicar Transferir agora com tudo vazio (ou valor '10,50')."],
+ expected:"Mensagem em português e compreensível, como 'Informe o valor da transferência'. Fonte: Image e Product (as demais mensagens do app são em português).",
+ actual:"Abaixo do campo Valor aparece o erro bruto da biblioteca de validação, em inglês, com termos como NaN e cast. Os outros campos vazios não mostram erro nenhum.",
+ heur:"Zero (campos vazios) e ataques de tipo de dado.",
+ oracle:"Image, Product, Users' expectations",
+ evid:"transferValue must be a `number` type, but the final value was: `NaN` (cast from the value `\"\"`)"},
+{id:"BUG-09", sev:"med", area:"Cadastro", title:"Nome composto só de espaços é aceito",
+ steps:["Preencher e-mail, senha e confirmação válidos.","Digitar três espaços em Nome e cadastrar."],
+ expected:"Recusar com 'Nome não pode ser vazio'. Fonte: Claims (nome obrigatório).",
+ actual:"Conta 611-1 criada; o nome gravado é '   ' e a home cumprimenta um nome em branco.",
+ heur:"Ataques de tipo de dado (espaço em branco) + Goldilocks (conteúdo que parece preenchido mas não é).",
+ oracle:"Claims",
+ evid:"{name:'   ', email:'semnome@teste.com', accountNumber:'611-1'}"},
+{id:"BUG-10", sev:"low", area:"Login", title:"Login vazio não mostra a mensagem definida no requisito",
+ steps:["Na tela inicial, clicar Acessar sem preencher nada."],
+ expected:"'Usuário e senha precisam ser preenchidos'. Fonte: Claims (/requirements › Login).",
+ actual:"Cada campo mostra 'É campo obrigatório'.",
+ heur:"Zero do Zero-Um-Muitos (nenhum campo preenchido).",
+ oracle:"Claims",
+ evid:"E-mail: É campo obrigatório · Senha: É campo obrigatório"},
+{id:"BUG-11", sev:"low", area:"Cadastro", title:"Mensagens de campo vazio divergem do requisito e entre si",
+ steps:["Clicar Cadastrar com todos os campos vazios.","Depois, preencher tudo menos o Nome e cadastrar."],
+ expected:"'Email não pode ser vazio', 'Senha não pode ser vazio', 'Confirmar senha não pode ser vazio', 'Nome não pode ser vazio', apresentadas da mesma forma. Fonte: Claims e Product.",
+ actual:"E-mail, senha e confirmação mostram 'É campo obrigatório' no campo; o Nome não mostra nada no campo e só reclama depois, em um modal.",
+ heur:"Particionamento de equivalência (um campo vazio por vez) e comparação de consistência entre campos.",
+ oracle:"Claims, Product",
+ evid:"inline: E-mail/Senha/Confirmação = 'É campo obrigatório'; Nome = (vazio) · modal: 'Nome não pode ser vazio.'"},
+{id:"BUG-12", sev:"low", area:"Textos", title:"Erros de ortografia em mensagens e no requisito",
+ steps:["Fazer uma transferência válida.","Tentar transferir para a própria conta.","Abrir /requirements › Transferência."],
+ expected:"'Transferência realizada com sucesso' (texto do requisito) e mensagens com acentuação e concordância corretas. Fonte: Claims e Image.",
+ actual:"'Transferencia realizada com sucesso' (sem acento); 'Nao pode transferir pra mesmo conta'; no requisito, 'aceitam apenas númros'.",
+ heur:"Comparação literal entre requisito e tela (oráculo Claims usado como checagem de texto).",
+ oracle:"Claims, Image",
+ evid:"modal: 'Transferencia realizada com sucesso' · 'Nao pode transferir pra mesmo conta'"},
+{id:"BUG-13", sev:"low", area:"Cadastro / segurança", title:"Senha de 1 caractere aceita e guardada em texto puro",
+ steps:["Cadastrar curta@teste.com com senha e confirmação '1'.","Inspecionar o armazenamento local."],
+ expected:"Exigir um tamanho mínimo de senha e não guardá-la legível. Fonte: Statutes/padrões de segurança. O requisito não define regra de senha, então isto é registrado como risco e não como violação de requisito.",
+ actual:"Conta 955-7 criada com senha '1'. Todas as senhas ficam legíveis no localStorage.",
+ heur:"Goldilocks (valor pequeno demais) e observação do dado gravado.",
+ oracle:"Statutes (boas práticas de segurança)",
+ evid:"curta@teste.com → {password:'1', accountNumber:'955-7'}"},
+{id:"BUG-14", sev:"low", area:"Acessibilidade", title:"Menu e toggle sem semântica acessível; páginas internas sem título",
+ steps:["Na home, inspecionar os botões Transferência, Pagamentos, Extrato e Saque.","No cadastro, inspecionar 'Criar conta com saldo'.","Ver o título da aba em /home, /transfer e /bank-statement."],
+ expected:"Botões com nome acessível, toggle como controle de formulário (checkbox/switch com estado) e <title> em cada página. Fonte: Statutes (WCAG) e Product (o login tem título).",
+ actual:"Os itens do menu são links vazios, sem href nem nome; o texto fica fora do elemento clicável. O toggle é um <label> sem papel nem estado. As páginas internas têm título vazio. Navegação só por teclado não foi testada.",
+ heur:"SFDIPOT › Interfaces (como tecnologias assistivas enxergam a tela).",
+ oracle:"Statutes (WCAG), Product",
+ evid:"<a id=\"btn-TRANSFERÊNCIA\"></a> · <label id=\"toggleAddBalance\"></label> · document.title = ''"},
+{id:"BUG-15", sev:"low", area:"Modais", title:"Modais não fecham com Esc nem com clique fora",
+ steps:["Na home, clicar Pagamentos para abrir o modal.","Pressionar Esc; depois clicar fora do modal."],
+ expected:"Fechar por Esc e, em modais informativos, ao clicar fora. Fonte: Users' expectations e Comparable products. Sugestão de melhoria, sem requisito.",
+ actual:"O modal só fecha pelo X ou pelo botão Fechar.",
+ heur:"ALTER FACE › Removable.",
+ oracle:"Users' expectations, Comparable products",
+ evid:"após Esc e clique fora: 'Funcionalidade em desenvolvimento' ainda visível"}
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tbody = document.querySelector("#matrixTable tbody");
+tbody.innerHTML = bugs.map(b => `<tr class="sev-${b.sev}"><td><a href="#${b.id}">${b.id}</a></td><td><span class="pill">${SEV[b.sev]}</span></td><td>${esc(b.title)}</td><td>${esc(b.heur)}</td><td>${esc(b.oracle)}</td></tr>`).join("");
+
+document.getElementById("bugs").innerHTML = bugs.map(b => `
+<article class="bug sev-${b.sev}" id="${b.id}" data-sev="${b.sev}">
+  <div class="bug-top"><span class="bug-id">${b.id}</span><span class="pill">${SEV[b.sev]}</span><span class="area">${esc(b.area)}</span><h3>${esc(b.title)}</h3></div>
+  <div class="grid2">
+    <div class="field"><span class="eyebrow">Passos</span><ol>${b.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></div>
+    <div class="field"><span class="eyebrow">Esperado</span><p>${esc(b.expected)}</p></div>
+    <div class="field"><span class="eyebrow">Obtido</span><p>${esc(b.actual)}</p></div>
+  </div>
+  <div class="heur"><span class="eyebrow">Heurística que revelou o bug</span><p><b>${esc(b.heur)}</b></p><p>Oráculo: ${esc(b.oracle)}</p></div>
+  <div class="evid">${esc(b.evid)}</div>
+</article>`).join("");
+
+document.querySelectorAll(".filters button").forEach(btn => btn.addEventListener("click", () => {
+  const f = btn.dataset.f;
+  document.querySelectorAll(".filters button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  document.querySelectorAll(".bug").forEach(el => { el.hidden = !(f === "all" || el.dataset.sev === f); });
+}));
+</script>
+
+</body></html>
