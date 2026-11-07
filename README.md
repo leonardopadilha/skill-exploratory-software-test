@@ -102,16 +102,6 @@ O conteúdo desta skill sintetiza ideias e contribuições publicadas por autore
 software, incluindo heurísticas de teste, sempre com os devidos créditos e a indicação do respectivo grau de
 verificação. Os exemplos são fictícios.
 
-## Roadmap (próximas versões)
-
-- [ ] Templates prontos (charter, session sheet, relato de bug)
-- [ ] Mais cenários de exemplo além do SRD (e-commerce, saúde, bancário)
-- [ ] Kits por funcionalidade mais aprofundados
-- [ ] Cobertura de mobile, acessibilidade, desempenho e segurança
-- [ ] Testes de sistemas com IA
-- [ ] `description` mais enxuta e avaliações (evals) do comportamento da skill
-- [ ] Versão em inglês
-
 ## Licença
 
 [MIT](LICENSE)
