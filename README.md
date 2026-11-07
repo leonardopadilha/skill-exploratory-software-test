@@ -86,7 +86,7 @@ Resultado: **[ver o relatório online](https://leonardopadilha.github.io/skill-e
 O relatório traz **15 problemas** (1 crítica, 2 altas, 6 médias, 6 baixas), uma matriz bug × heurística, passos,
 resultado esperado com a fonte do oráculo, evidências, e uma seção de cobertura e lacunas.
 
-| Pontos fortes observados | Limitações conhecidas (viram melhorias da v1.1) |
+| Pontos fortes observados | Limitações conhecidas |
 |---|---|
 | Cada bug cita heurística e oráculo | Severidade de BUG-01 provavelmente superestimada: o app guarda tudo em `localStorage`, então o impacto fica restrito ao navegador local |
 | Declara o que não foi testado e uma observação não reproduzida | BUG-14 (acessibilidade) foi registrado como confirmado sem teste de navegação por teclado |
